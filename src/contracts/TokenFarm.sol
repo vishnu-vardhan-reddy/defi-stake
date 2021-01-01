@@ -1,7 +1,8 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.6.0;
 
 import "./DappToken.sol";
 import "./DaiToken.sol";
+import "@chainlink/contracts/src/v0.6/interfaces/AggregatorV3Interface.sol";
 
 contract TokenFarm {
     string public name = "Dapp Token Farm";
@@ -55,8 +56,21 @@ contract TokenFarm {
             address recipient = stakers[i];
             uint256 balance = stakingBalance[recipient];
             if (balance > 0) {
-                dappToken.transfer(recipient, balance);
+                dappToken.transfer(recipient, getCalculatedBalance() * balance);
             }
         }
+    }
+
+    function getCalculatedBalance() public view returns (uint256) {
+        AggregatorV3Interface priceFeed =
+            AggregatorV3Interface(0x777A68032a88E5A84678A77Af2CD65A7b3c0775a);
+        (
+            uint80 roundID,
+            int256 price,
+            uint256 startedAt,
+            uint256 timeStamp,
+            uint80 answeredInRound
+        ) = priceFeed.latestRoundData();
+        return uint256(price);
     }
 }
